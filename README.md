@@ -48,6 +48,6 @@ Create a directory `pgm_datasets` and download the dataset from https://github.c
 
 Then execute `sbatch run_train_pgm_job.slurm` which trains the slot abstractor on the extrapolation regime by default. To train on a different regime modify `--path` argument on line 23, and the name of the output log file on line 10.
 
-To evaluate on the test set, execute `sbatch run_test_pgm_job.slurm`, which requires specifying the path to the saved model weights after training through `--model_checkpoint` argument on line 22.
+To evaluate on the test set (default is extrapolation regime), execute `sbatch run_test_pgm_job.slurm`, which requires specifying the path to the saved model weights after training through `--model_checkpoint` argument on line 22.
 
 

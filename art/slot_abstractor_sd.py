@@ -364,7 +364,7 @@ class RelationalAttention(nn.Module):
 		out = rearrange(out, 'b h n d -> b n (h d)')
 		return self.to_out(out)
 
-class Transformer(nn.Module):
+class Abstractor(nn.Module):
 	def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.0):
 		super().__init__()
 		self.layers = nn.ModuleList([])
@@ -406,7 +406,7 @@ class Transformer(nn.Module):
 		return s
 
 
-class ViT(nn.Module):
+class Abstractor_model(nn.Module):
 	def __init__(self,opt, dim, depth, heads, mlp_dim,num_slots, pool = 'cls', dim_head = 64, dropout = 0.0, emb_dropout = 0.0):
 		super().__init__()
 		
@@ -422,7 +422,7 @@ class ViT(nn.Module):
 		# self.cls_token = nn.Parameter(torch.randn(1, 1, dim ))
 		self.dropout = nn.Dropout(dropout)
 
-		self.transformer = Transformer(dim , depth, heads, dim_head, mlp_dim, dropout)
+		self.abstractor = Abstractor(dim , depth, heads, dim_head, mlp_dim, dropout)
 		# self.transformer2 = Transformer2(dim , depth, heads, dim_head, mlp_dim, dropout)
 
 		self.pool = pool
@@ -447,7 +447,7 @@ class ViT(nn.Module):
 		x = self.dropout(x)
 		symbols= self.dropout(symbols)
 
-		s = self.transformer(x,symbols)
+		s = self.abstractor(x,symbols)
 		
 
 		s =  s.mean(dim = 1) #if self.pool == 'mean' else x[:, 0]
@@ -472,7 +472,7 @@ class scoring_model(nn.Module):
 		self.num_slots = num_slots
 		
 
-		self.transformer = ViT(opt,in_dim,depth,heads,mlp_dim,num_slots)
+		self.abstractors = Abstractor_model(opt,in_dim,depth,heads,mlp_dim,num_slots)
 
 
 		# self.lstm = LSTM(in_dim)
@@ -501,7 +501,7 @@ class scoring_model(nn.Module):
 		  
 			# x_seq = torch.cat((x_seq,all_posemb_concat_flatten),dim=2)
 			
-		score = self.transformer(x_seq,pos_seq,device).squeeze()
+		score = self.abstractors(x_seq,pos_seq,device).squeeze()
 
 		  	
 

@@ -99,7 +99,7 @@ class SoftPositionEmbed(nn.Module):
 class Encoder(nn.Module):
 	def __init__(self, resolution, hid_dim):
 		super().__init__()
-		self.conv1 = nn.Conv2d(1, hid_dim, 5, padding = 2)
+		self.conv1 = nn.Conv2d(3, hid_dim, 5, padding = 2)
 		self.conv2 = nn.Conv2d(hid_dim, hid_dim, 5, padding = 2)
 		self.conv3 = nn.Conv2d(hid_dim, hid_dim, 5, padding = 2)
 		self.conv4 = nn.Conv2d(hid_dim, hid_dim, 5, padding = 2)
@@ -127,7 +127,7 @@ class Decoder(nn.Module):
 		self.conv3 = nn.ConvTranspose2d(hid_dim, hid_dim, 5, stride=(1, 1), padding=2)
 		self.conv4 = nn.ConvTranspose2d(hid_dim, hid_dim, 5, stride=(1, 1), padding=2)
 		self.conv5 = nn.ConvTranspose2d(hid_dim, hid_dim, 5, stride=(1, 1), padding=2)
-		self.conv6 = nn.ConvTranspose2d(hid_dim, 2, 3, stride=(1, 1), padding=1)
+		self.conv6 = nn.ConvTranspose2d(hid_dim, 4, 3, stride=(1, 1), padding=1)
 		self.decoder_initial_size = resolution
 		self.decoder_pos = SoftPositionEmbed(hid_dim, self.decoder_initial_size)
 		self.resolution = resolution
@@ -230,7 +230,7 @@ class SlotAttentionAutoEncoder(nn.Module):
 
 		# Undo combination of slot and batch dimension; split alpha masks.
 		# recons, masks = x.reshape(image.shape[0], -1, x.shape[1], x.shape[2], x.shape[3]).split([3,1], dim=-1)
-		recons, masks = x.reshape(image.shape[0], -1, x.shape[1], x.shape[2], x.shape[3]).split([1,1], dim=-1)
+		recons, masks = x.reshape(image.shape[0], -1, x.shape[1], x.shape[2], x.shape[3]).split([3,1], dim=-1)
 		
 		# `recons` has shape: [batch_size, num_slots, width, height, num_channels].
 		# `masks` has shape: [batch_size, num_slots, width, height, 1].
@@ -260,7 +260,6 @@ class PreNorm(nn.Module):
 		self.fn = fn
 	def forward(self, x, **kwargs):
 		return self.fn(self.norm(x), **kwargs)
-
 
 
 
@@ -310,8 +309,6 @@ class SelfAttention(nn.Module):
 		out = rearrange(out, 'b h n d -> b n (h d)')
 		return self.to_out(out)
 
-
-
 class RelationalAttention(nn.Module):
 	def __init__(self, dim, heads = 8, dim_head = 64, dropout = 0.0,layer_idx=0):
 		super().__init__()
@@ -324,11 +321,13 @@ class RelationalAttention(nn.Module):
 
 		self.attend = nn.Softmax(dim = -1)
 		self.dropout = nn.Dropout(dropout)
+
 		torch.manual_seed(3+layer_idx)
 		self.to_q = nn.Linear(dim, inner_dim, bias = False)
+		
 		torch.manual_seed(3+layer_idx)
 		self.to_k = nn.Linear(dim, inner_dim, bias = False)
-		
+
 		self.to_v = nn.Linear(dim, inner_dim , bias = False)
 		
 		self.to_out = nn.Sequential(
@@ -361,23 +360,17 @@ class RelationalAttention(nn.Module):
 		out = rearrange(out, 'b h n d -> b n (h d)')
 		return self.to_out(out)
 
-
-
 class Abstractor(nn.Module):
 	def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.0):
 		super().__init__()
 		self.layers = nn.ModuleList([])
 		# self.norm = nn.LayerNorm(dim)
-		for d_idx in range(depth):
+		for l_idx in range(depth):
 			self.layers.append(nn.ModuleList([
-				
-                
-
 				PreNorm(dim, SelfAttention(dim, heads = heads, dim_head = dim_head, dropout = dropout)),
-				RelationalAttention(dim, heads = heads, dim_head = dim_head, dropout = dropout,layer_idx=d_idx),
-				# PreNorm(dim, SelfAttention2(dim, heads = heads, dim_head = dim_head, dropout = dropout)),
-				# RelationalAttention2(dim, heads = heads, dim_head = dim_head, dropout = dropout,layer_idx=d_idx),
+				RelationalAttention(dim, heads = heads, dim_head = dim_head, dropout = dropout,layer_idx=l_idx),
 				PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
+				
 				
 			]))
 	def forward(self, x,s):
@@ -389,14 +382,7 @@ class Abstractor(nn.Module):
 			s = self_attn(s)+ s
 			# s = self.norm(s)
 			s = ff(s) + s
-
-			# x = relational_attn2(s,x) + x
-			# s = self.norm(s)
-			# x = ff(x) + x
-
-			# x = self_attn2(x)+ x
-			# s = self.norm(s)
-			# x = ff(x) + x
+			
 			
 			# s = nn.Dropout(0.1)(s)
 
@@ -425,6 +411,11 @@ class Abstractor_model(nn.Module):
 		self.pool = pool
 		self.to_latent = nn.Identity()
 
+		# self.mlp_head = nn.Sequential(
+		#   nn.Linear(dim*num_slots, dim),
+		# 	nn.ReLU(),
+		#   nn.Linear(dim, 1)
+		#   )
 		self.mlp_head = nn.Linear(dim , 1)
 	
 
@@ -443,7 +434,7 @@ class Abstractor_model(nn.Module):
 		# print(s.shape)
 		# s = torch.flatten(s, 1, 2)
 		# print(s.shape)
-
+		# s = torch.flatten(s, 1, 2)
 		s = s.mean(dim = 1) #if self.pool == 'mean' else x[:, 0]
 
 		s = self.to_latent(s)
@@ -494,6 +485,7 @@ class scoring_model(nn.Module):
 				pos_seq = self.apply_context_norm(pos_seq)
 
 			
+		   	
 			score = self.abstractors(x_seq,pos_seq,device)
 			scores.append(score)
 

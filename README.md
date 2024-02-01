@@ -17,7 +17,7 @@ First `cd art`
 
 Then execute `python run_art_tasks.py` which trains the slot abstractor on the four ART tasks (same/different (sd), relational-match-to-sample (rmts), distribution-of-3 (dist3), identity rules (idrules)) by running independent jobs for each task, and saves the test accuracy for each task and model run in a txt file.
 
-For example, the saved path for the test accuracy file for same/different task corresponding to model run 1 would be `test/same_diff/m95/slot_attention_random_spatial_heldout_unicodes_resizedcropped_pretrained_frozen_autoencoder_abstractor_scoring/run1.txt`
+For example, the saved path for the test accuracy file for same/different task corresponding to model run number 1 would be `test/same_diff/m95/slot_attention_random_spatial_heldout_unicodes_resizedcropped_pretrained_frozen_autoencoder_abstractor_scoring/run1.txt`
 
 ## SVRT
 
@@ -37,7 +37,7 @@ Generate the CLEVR-ART dataset using the instructions in https://github.com/Shan
 
 Then execute `python run_clevr_tasks.py` which trains the slot abstractor on the CLEVR-ART tasks (relational-match-to-sample (rmts) and identity rules (idrules)) by running independent jobs for each task, and saves the test accuracy for each task and model run in a txt file.
 
-For example, the saved path for the test accuracy file for relational-match-to-sample task corresponding to model run 1 would be `test/CLEVR_RMTS/slot_attention_random_spatial_clevrshapes_cv2_rgbcolororder_pretrained_frozen_autoencoder_abstractor_scoring/run1.txt`
+For example, the saved path for the test accuracy file for relational-match-to-sample task corresponding to model run number 1 would be `test/CLEVR_RMTS/slot_attention_random_spatial_clevrshapes_cv2_rgbcolororder_pretrained_frozen_autoencoder_abstractor_scoring/run1.txt`
 
 
 ## PGM

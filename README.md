@@ -44,7 +44,7 @@ For example, the saved path for the test accuracy file for relational-match-to-s
 
 First `cd pgm`
 
-Create a directory `pgm_datasets` and download the dataset from https://github.com/google-deepmind/abstract-reasoning-matrices. Also create a directory `weights` to save model weights from training.
+Create a directory `pgm_datasets` and download the dataset in it from https://github.com/google-deepmind/abstract-reasoning-matrices. Also, create a separate directory `weights` to save model weights from training.
 
 Then execute `sbatch run_train_pgm_job.slurm` which trains the slot abstractor on the extrapolation regime by default. To train on a different regime modify `--path` argument on line 23, and the name of the output log file on line 10.
 

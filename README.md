@@ -10,7 +10,7 @@
 - numpy==1.23.1
 - einops==0.4.1
 
-### Note - For training/testing, we ran jobs through the Slurm scheduler. 
+### Note - For training/testing, jobs were run through the Slurm scheduler. 
 
 ## ART
 First `cd art`
